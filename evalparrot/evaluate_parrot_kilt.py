@@ -18,17 +18,17 @@ from tqdm import tqdm
 # dataset_with_paragraph_id = ['fever', 'triviaqa', 'wow', 'eli5', 'hotpotqa', 'nq', 'structured_zeroshot', 'trex']
 
 
-def evaluate_parrot_kilt(kilt_dataset_name: str = 'hotpotqa',
-                         kilt_wiki_mongo_domain: str = '127.0.0.1',
-                         milvus_domain: str = '127.0.0.1',
-                         parrot_service_address: str = 'http://127.0.0.1:8999',
-                         result_name: str = 'kilt_parrot_evaluation_res',
-                         top_k: int = 10,
-                         rerank: bool = False,
-                         pre_query_num: int = 200,
-                         metric_type: str = 'kilt_score',
-                         doc_gen_type: str = 'multi'
-                         ):
+def eval_parrot_kilt(kilt_dataset_name: str = 'hotpotqa',
+                     kilt_wiki_mongo_domain: str = '127.0.0.1',
+                     milvus_domain: str = '127.0.0.1',
+                     parrot_service_address: str = 'http://127.0.0.1:8999',
+                     result_name: str = 'kilt_parrot_evaluation_res',
+                     top_k: int = 10,
+                     rerank: bool = False,
+                     pre_query_num: int = 200,
+                     metric_type: str = 'kilt_score',
+                     doc_gen_type: str = 'multi'
+                     ):
     """
     Under the condition that the parrot service and the kilt mongo service are started,
     use kilt dataset to evaluate the performance of parrot.

@@ -32,9 +32,9 @@ pip install evalparrot
 Start evaluation:
 
 ```python
-from evalparrot import evaluate_parrot_kilt
+from evalparrot import eval_parrot_kilt
 
-evaluate_parrot_kilt(
+eval_parrot_kilt(
     kilt_dataset_name='hotpotqa',
     kilt_wiki_mongo_domain='127.0.0.1', # Use your mongo service address
     milvus_domain='127.0.0.1',  # Use the address of milvus in your parrot
