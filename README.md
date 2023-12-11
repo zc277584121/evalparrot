@@ -5,7 +5,8 @@ This is a tool to quantitatively test the performance of parrot.
 ## How to use?
 
 - Step 1:
-And install kilt, and it's dependency into pip:
+  Install kilt, and it's dependency into pip:
+
 ```shell
 git clone https://github.com/facebookresearch/KILT.git
 cd KILT
@@ -15,36 +16,47 @@ python setup.py install
 ```
 
 - Step 2: Prepare Kilt mongodb datasource service:
-refer to [kilt page](https://github.com/facebookresearch/KILT/tree/main?tab=readme-ov-file#kilt-knowledge-source). 
+  refer to [kilt page](https://github.com/facebookresearch/KILT/tree/main?tab=readme-ov-file#kilt-knowledge-source).
 
 
 - Step 3:
-Start parrot service
+  Start parrot service
 
 
 - Step 4:
-Install evalparrot with it's dependencies:
+  Install evalparrot with it's dependencies:
+
 ```shell
 pip install evalparrot
 ```
 
 - Step 5:
-Start evaluation:
+  Start evaluation:
 
 ```python
 from evalparrot import eval_parrot_kilt
 
-eval_parrot_kilt(
+eval_result = eval_parrot_kilt(
     kilt_dataset_name='hotpotqa',
-    kilt_wiki_mongo_domain='127.0.0.1', # Use your mongo service address
+    kilt_wiki_mongo_domain='127.0.0.1',  # Use your mongo service address
     milvus_domain='127.0.0.1',  # Use the address of milvus in your parrot
     parrot_service_address='http://127.0.0.1:8999',  # Use the address of your parrot service
     result_name='kilt_parrot_evaluation_res',
     pre_query_num=10,
 )
+print(eval_result)
+
+# {
+#     "Rprec": 0.85,
+#     "precision@1": 0.7,
+#     "precision@5": 0.18,
+#     "recall@5": 0.9,
+#     "success_rate@5": 0.9
+# }
 ```
 
 Parameter Description:
+
 ```text
 Args:
     kilt_dataset_name (`str`):

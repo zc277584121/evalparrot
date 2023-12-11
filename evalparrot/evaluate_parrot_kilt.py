@@ -174,6 +174,7 @@ def eval_parrot_kilt(kilt_dataset_name: str = 'hotpotqa',
             run_num=1,
         )
         save_results(output_dir, project_name, result_list, multi_run_result)
+        return result_list
     else:
         data_jsonl_path = find_data_jsonl_path(kilt_dataset_name, 'dev', kilt_data_path)
         gold_id_2_dict = dict()
@@ -246,43 +247,4 @@ def eval_parrot_kilt(kilt_dataset_name: str = 'hotpotqa',
         with open(output_json_path, 'w') as fw:
             fw.write(json.dumps(eval_result, indent=4))
             print(f'save result to {output_json_path}')
-
-# if __name__ == '__main__':
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--kilt_dataset_name", type=str, required=False, default='hotpotqa')
-#     parser.add_argument("--kilt_wiki_mongo_domain", type=str, required=False, default='127.0.0.1')
-#     parser.add_argument("--milvus_domain", type=str, required=False, default='127.0.0.1')
-#     parser.add_argument("--parrot_service_address", type=str, required=False, default='http://127.0.0.1:8999')
-#     parser.add_argument("--result_name", type=str, required=False, default='kilt_parrot_evaluation_res')
-#     parser.add_argument("--top_k", type=int, required=False, default=10)
-#     parser.add_argument('--rerank', action='store_true')
-#     # parser.add_argument("--pre_answer_dataset", type=str, required=False, default=None)
-#     parser.add_argument("--pre_query_num", type=int, required=False, default=200)
-#
-#     parser.add_argument('--metric_type', required=False, choices=['ragas_score', 'kilt_score'], default='kilt_score')
-#     parser.add_argument('--doc_gen_type', required=False, choices=['single', 'multi'], default='multi')
-#
-#     args = parser.parse_args()
-#
-#     kilt_dataset_name = args.kilt_dataset_name
-#     kilt_wiki_mongo_domain = args.kilt_wiki_mongo_domain
-#     milvus_domain = args.milvus_domain
-#     parrot_service_address = args.parrot_service_address
-#     result_name = args.result_name
-#     top_k = args.top_k
-#     rerank = args.rerank if args.rerank is True else None
-#     pre_query_num = args.pre_query_num
-#     metric_type = args.metric_type
-#     doc_gen_type = args.doc_gen_type
-#
-#     evaluate_parrot_kilt(kilt_dataset_name=kilt_dataset_name,
-#                          kilt_wiki_mongo_domain=kilt_wiki_mongo_domain,
-#                          milvus_domain=milvus_domain,
-#                          parrot_service_address=parrot_service_address,
-#                          result_name=result_name,
-#                          top_k=top_k,
-#                          rerank=rerank,
-#                          pre_query_num=pre_query_num,
-#                          metric_type=metric_type,
-#                          doc_gen_type=doc_gen_type
-#                          )
+        return eval_result
