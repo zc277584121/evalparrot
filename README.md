@@ -1,31 +1,34 @@
 # evalparrot
 
-This is a tool to quantitatively test the effect of parrot.
+This is a tool to quantitatively test the performance of parrot.
 
 ## How to use?
 
 - Step 1:
-Prepare Kilt mongodb datasource service:
-refer to [kilt page](https://github.com/facebookresearch/KILT/tree/main?tab=readme-ov-file#kilt-knowledge-source). 
-And install kilt dependency into pip:
+And install kilt, and it's dependency into pip:
 ```shell
 git clone https://github.com/facebookresearch/KILT.git
 cd KILT
+conda create -n kilt37 -y python=3.7 && conda activate kilt37
+pip install -e .
 python setup.py install
 ```
 
-- Step 2:
-Start parrot service
+- Step 2: Prepare Kilt mongodb datasource service:
+refer to [kilt page](https://github.com/facebookresearch/KILT/tree/main?tab=readme-ov-file#kilt-knowledge-source). 
 
 
 - Step 3:
-Install evalparrot and it's dependencies:
+Start parrot service
+
+
+- Step 4:
+Install evalparrot with it's dependencies:
 ```shell
 pip install evalparrot
 ```
 
-- Step 4:
-Install evalparrot
+- Step 5:
 Start evaluation:
 
 ```python
@@ -45,12 +48,12 @@ Parameter Description:
 ```text
 Args:
     kilt_dataset_name (`str`):
-        Available name include ['fever', 'triviaqa', 'wow', 'eli5', 'hotpotqa', 'nq', 'structured_zeroshot', 'trex'],
-        default is 'hotpotqa'.
+        Available name include ['fever', 'triviaqa', 'wow', 'eli5', 'hotpotqa', 'nq', 'structured_zeroshot', 'trex'].
+        Default is 'hotpotqa'.
     kilt_wiki_mongo_domain (`str`):
-        You must first start the mongodb service of kilt datasource,
-        please refer to https://github.com/facebookresearch/KILT/tree/main?tab=readme-ov-file#kilt-knowledge-source
-        default is '127.0.0.1'.
+        You must first start the mongodb service of kilt datasource.
+        Please refer to https://github.com/facebookresearch/KILT/tree/main?tab=readme-ov-file#kilt-knowledge-source
+        Default is '127.0.0.1'.
     milvus_domain (`str`):
         Milvus service domain of parrot, default is '127.0.0.1'.
     parrot_service_address (`str`):
@@ -65,8 +68,8 @@ Args:
         The number of query questions is too large. You can only run the first n queries.
         Default is 200.
     metric_type (`str`):
-        Available options include ['kilt_score', 'ragas_score'],
-        generally the default kilt score is used.
+        Available options include ['kilt_score', 'ragas_score'].
+        Generally the default kilt score is used.
         When using 'ragas_score', you must set OPENAI_API_KEY in the environment variable,
         and this consumes a lot of openai token usage and can only measure some ragas scores without answers.
     doc_gen_type (`str`):
