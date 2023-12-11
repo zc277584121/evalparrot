@@ -1,12 +1,11 @@
 import json
 import os
-import argparse
+# import argparse
 
 from kilt.eval_retrieval import evaluate
 from kilt.knowledge_source import KnowledgeSource
 from metric.utils.dataset.kilt_data import prepare_kilt_without_answer, find_data_jsonl_path, filter_jsonl, \
     prepare_kilt_without_answer_with_multi_documents, find_wikipedia_id_by_gold, download_kilt_jsonl
-
 from metric.utils.io import save_dataset_with_timestamp, save_results
 from metric.utils.parrot_utils.http_utils import post_create, post_delete, post_upsert_kilt, \
     post_upsert_kilt_with_multi_doc, post_search
@@ -15,35 +14,63 @@ from ragas.metrics import context_recall, context_precision  # , context_relevan
 from datasets import Dataset
 from tqdm import tqdm
 
+
 # dataset_with_paragraph_id = ['fever', 'triviaqa', 'wow', 'eli5', 'hotpotqa', 'nq', 'structured_zeroshot', 'trex']
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--kilt_dataset_name", type=str, required=False, default='hotpotqa')
-    parser.add_argument("--kilt_wiki_mongo_domain", type=str, required=False, default='127.0.0.1')
-    parser.add_argument("--parrot_service_address", type=str, required=False, default='http://127.0.0.1:8999')
-    parser.add_argument("--milvus_domain", type=str, required=False, default='127.0.0.1')
-    parser.add_argument("--result_name", type=str, required=False, default='kilt_parrot_evaluation_res')
-    parser.add_argument("--top_k", type=int, required=False, default=10)
-    parser.add_argument('--rerank', action='store_true')
-    # parser.add_argument("--pre_answer_dataset", type=str, required=False, default=None)
-    parser.add_argument("--pre_query_num", type=int, required=False, default=200)
 
-    parser.add_argument('--metric_type', required=False, choices=['ragas_score', 'kilt_score'], default='kilt_score')
-    parser.add_argument('--doc_gen_type', required=False, choices=['single', 'multi'], default='multi')
+def evaluate_parrot_kilt(kilt_dataset_name: str = 'hotpotqa',
+                         kilt_wiki_mongo_domain: str = '127.0.0.1',
+                         milvus_domain: str = '127.0.0.1',
+                         parrot_service_address: str = 'http://127.0.0.1:8999',
+                         result_name: str = 'kilt_parrot_evaluation_res',
+                         top_k: int = 10,
+                         rerank: bool = False,
+                         pre_query_num: int = 200,
+                         metric_type: str = 'kilt_score',
+                         doc_gen_type: str = 'multi'
+                         ):
+    """
+    Under the condition that the parrot service and the kilt mongo service are started,
+    use kilt dataset to evaluate the performance of parrot.
+    Args:
+        kilt_dataset_name (`str`):
+            Available name include ['fever', 'triviaqa', 'wow', 'eli5', 'hotpotqa', 'nq', 'structured_zeroshot', 'trex'],
+            default is 'hotpotqa'.
+        kilt_wiki_mongo_domain (`str`):
+            You must first start the mongodb service of kilt datasource,
+            please refer to https://github.com/facebookresearch/KILT/tree/main?tab=readme-ov-file#kilt-knowledge-source
+            default is '127.0.0.1'.
+        milvus_domain (`str`):
+            Milvus service domain of parrot, default is '127.0.0.1'.
+        parrot_service_address (`str`):
+            Parrot service address, default is 'http://127.0.0.1:8999'.
+        result_name (`str`):
+            The name of the result, default is 'kilt_parrot_evaluation_res'.
+        top_k (`int`):
+            The parrot top k config, default is 10.
+        rerank (`bool`):
+            Whether to use rerank in parrot config, default is False.
+        pre_query_num (`int`):
+            The number of query questions is too large. You can only run the first n queries.
+            Default is 200.
+        metric_type (`str`):
+            Available options include ['kilt_score', 'ragas_score'],
+            generally the default kilt score is used.
+            When using 'ragas_score', you must set OPENAI_API_KEY in the environment variable,
+            and this consumes a lot of openai token usage and can only measure some ragas scores without answers.
+        doc_gen_type (`str`):
+            Available options include ['multi', 'single'].
+            'multi' is closer to the actual document settings,
+            and the 'single' method comes from the baseline of ragas doc:
+            https://github.com/explodinggradients/ragas/blob/main/experiments/baselines/fiqa/dataset-exploration-and-baseline.ipynb.
+            Default is 'multi'.
 
-    args = parser.parse_args()
+    """
+    if rerank is False:
+        rerank = None
+    project_name = result_name
 
-    metric_type = args.metric_type
-    doc_gen_type = args.doc_gen_type
-    pre_query_num = args.pre_query_num
-
-    kilt_dataset_name = args.kilt_dataset_name
-    project_name = args.result_name
-    rerank = args.rerank if args.rerank is True else None
-    top_k = args.top_k
-
-    mongo_connection_string = f"mongodb://{args.kilt_wiki_mongo_domain}:27017/admin"
+    mongo_connection_string = f"mongodb://{kilt_wiki_mongo_domain}:27017/admin"
     knowledge_source = KnowledgeSource(mongo_connection_string=mongo_connection_string)
 
     output_dir = os.path.join('./outputs/kilt', project_name)
@@ -55,8 +82,8 @@ if __name__ == '__main__':
         os.makedirs(kilt_data_path)
     download_kilt_jsonl(kilt_data_path, kilt_dataset_name)
 
-    # if args.pre_answer_dataset:
-    #     ds = Dataset.load_from_disk(args.pre_answer_dataset)
+    # if pre_answer_dataset:
+    #     ds = Dataset.load_from_disk(pre_answer_dataset)
     # else:
 
     if doc_gen_type == 'multi':
@@ -85,27 +112,27 @@ if __name__ == '__main__':
     temp_file_path = os.path.join(kilt_data_path, 'kilt_temp_doc.txt')
 
     try:
-        post_delete(project_name=project_name, store_domain=args.milvus_domain,
-                    parrot_domain=args.parrot_service_address, rerank=rerank)
+        post_delete(project_name=project_name, store_domain=milvus_domain,
+                    parrot_domain=parrot_service_address, rerank=rerank)
     except:
         pass  # collection not exist, first time delete
-    post_create(project_name=project_name, store_domain=args.milvus_domain, parrot_domain=args.parrot_service_address,
+    post_create(project_name=project_name, store_domain=milvus_domain, parrot_domain=parrot_service_address,
                 rerank=rerank)
     if doc_gen_type == 'multi':
         post_upsert_kilt_with_multi_doc(project_name=project_name,
                                         ks=knowledge_source,
                                         wikipedia_id_set=wikipedia_id_set,
                                         temp_file_path=temp_file_path,
-                                        store_domain=args.milvus_domain,
-                                        parrot_domain=args.parrot_service_address,
+                                        store_domain=milvus_domain,
+                                        parrot_domain=parrot_service_address,
                                         rerank=rerank)
     else:
         post_upsert_kilt(project_name=project_name,
                          kilt_dataset_name=kilt_dataset_name,
                          documents=documents,
                          temp_file_path=temp_file_path,
-                         store_domain=args.milvus_domain,
-                         parrot_domain=args.parrot_service_address,
+                         store_domain=milvus_domain,
+                         parrot_domain=parrot_service_address,
                          rerank=rerank)
 
     contexts_list = []
@@ -117,8 +144,8 @@ if __name__ == '__main__':
                 answer, contexts = post_search(
                     question,
                     project_name,
-                    store_domain=args.milvus_domain,
-                    parrot_domain=args.parrot_service_address,
+                    store_domain=milvus_domain,
+                    parrot_domain=parrot_service_address,
                     top_k=top_k,
                     rerank=rerank
                 )
@@ -163,8 +190,8 @@ if __name__ == '__main__':
                     answer, contexts = post_search(
                         input_,
                         project_name,
-                        store_domain=args.milvus_domain,
-                        parrot_domain=args.parrot_service_address,
+                        store_domain=milvus_domain,
+                        parrot_domain=parrot_service_address,
                         top_k=top_k,
                         rerank=rerank
                     )
@@ -219,3 +246,43 @@ if __name__ == '__main__':
         with open(output_json_path, 'w') as fw:
             fw.write(json.dumps(eval_result, indent=4))
             print(f'save result to {output_json_path}')
+
+# if __name__ == '__main__':
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument("--kilt_dataset_name", type=str, required=False, default='hotpotqa')
+#     parser.add_argument("--kilt_wiki_mongo_domain", type=str, required=False, default='127.0.0.1')
+#     parser.add_argument("--milvus_domain", type=str, required=False, default='127.0.0.1')
+#     parser.add_argument("--parrot_service_address", type=str, required=False, default='http://127.0.0.1:8999')
+#     parser.add_argument("--result_name", type=str, required=False, default='kilt_parrot_evaluation_res')
+#     parser.add_argument("--top_k", type=int, required=False, default=10)
+#     parser.add_argument('--rerank', action='store_true')
+#     # parser.add_argument("--pre_answer_dataset", type=str, required=False, default=None)
+#     parser.add_argument("--pre_query_num", type=int, required=False, default=200)
+#
+#     parser.add_argument('--metric_type', required=False, choices=['ragas_score', 'kilt_score'], default='kilt_score')
+#     parser.add_argument('--doc_gen_type', required=False, choices=['single', 'multi'], default='multi')
+#
+#     args = parser.parse_args()
+#
+#     kilt_dataset_name = args.kilt_dataset_name
+#     kilt_wiki_mongo_domain = args.kilt_wiki_mongo_domain
+#     milvus_domain = args.milvus_domain
+#     parrot_service_address = args.parrot_service_address
+#     result_name = args.result_name
+#     top_k = args.top_k
+#     rerank = args.rerank if args.rerank is True else None
+#     pre_query_num = args.pre_query_num
+#     metric_type = args.metric_type
+#     doc_gen_type = args.doc_gen_type
+#
+#     evaluate_parrot_kilt(kilt_dataset_name=kilt_dataset_name,
+#                          kilt_wiki_mongo_domain=kilt_wiki_mongo_domain,
+#                          milvus_domain=milvus_domain,
+#                          parrot_service_address=parrot_service_address,
+#                          result_name=result_name,
+#                          top_k=top_k,
+#                          rerank=rerank,
+#                          pre_query_num=pre_query_num,
+#                          metric_type=metric_type,
+#                          doc_gen_type=doc_gen_type
+#                          )
