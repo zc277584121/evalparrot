@@ -1,0 +1,8 @@
+ragas==0.0.17
+datasets
+requests
+langchain
+tqdm
+kilt~=0.1.0
+numpy
+setuptools
