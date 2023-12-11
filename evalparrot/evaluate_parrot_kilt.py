@@ -4,12 +4,12 @@ import os
 
 from kilt.eval_retrieval import evaluate
 from kilt.knowledge_source import KnowledgeSource
-from metric.utils.dataset.kilt_data import prepare_kilt_without_answer, find_data_jsonl_path, filter_jsonl, \
+from evalparrot.metric.utils.dataset.kilt_data import prepare_kilt_without_answer, find_data_jsonl_path, filter_jsonl, \
     prepare_kilt_without_answer_with_multi_documents, find_wikipedia_id_by_gold, download_kilt_jsonl
-from metric.utils.io import save_dataset_with_timestamp, save_results
-from metric.utils.parrot_utils.http_utils import post_create, post_delete, post_upsert_kilt, \
+from evalparrot.metric.utils.io import save_dataset_with_timestamp, save_results
+from evalparrot.metric.utils.parrot_utils.http_utils import post_create, post_delete, post_upsert_kilt, \
     post_upsert_kilt_with_multi_doc, post_search
-from metric.utils.multi_run import multi_evaluate_one_dataset
+from evalparrot.metric.utils.multi_run import multi_evaluate_one_dataset
 from ragas.metrics import context_recall, context_precision  # , context_relevancy
 from datasets import Dataset
 from tqdm import tqdm
